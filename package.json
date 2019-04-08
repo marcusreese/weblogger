@@ -1,0 +1,20 @@
+{
+    "name": "weblogger",
+    "version": "1.0.0",
+    "description": "Proving that a simple web page can handle a lot of log entries",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Marcus Reese <marcusoccasional@gmail.com>",
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.16.4",
+        "node-static": "^0.7.11",
+        "ws": "^6.2.1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/username/repository.git"
+    },
+    "private": true
+}

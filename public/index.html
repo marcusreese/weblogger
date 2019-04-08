@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Weblogger</title>
+</head>
+
+<style>
+  #caught {
+    display: flex;
+    flex-direction: column-reverse;
+    height: 60vh;
+    overflow: auto;
+  }
+</style>
+
+<body>
+  <h1>Weblogger</h1>
+  <div>Interval (default is 1000ms): <input type="number" id="interval"></div>
+
+  <div>Catch messages if they . . .</div>
+  <div><input type="checkbox" id="catchAll"> exist</div>
+  <div><input type="checkbox" id="catchMatch"> match <input type="text" id="catchMatchString"></div>
+  <div><input type="checkbox" id="catchNew" checked> are new</div>
+  <div>(<span id="numRemembered">0</span> remembered) <button id="clearMem">Clear Remembered</button></div>
+  <h2><span id="numCaught">0</span> Caught:</h2>
+  <div id="caught"></div>
+  <button id="clearView">Clear Caught</button>
+  <div>(<span id="numUncaught">0</span> uncaught)</div>
+
+  <script>
+    let numCaught = 0;
+    const worker = new Worker('worker.js');
+    worker.onmessage = function (event) {
+      const { numUncaught, caughtEntry, numRemembered } = event.data;
+      if (numUncaught) {
+        document.querySelector('#numUncaught').innerHTML = numUncaught;
+      }
+      if (caughtEntry) {
+        document.querySelector('#caught').insertAdjacentHTML('beforeend', caughtEntry + '<br>');
+        document.querySelector('#numCaught').innerHTML = ++numCaught;
+      }
+      if (numRemembered) {
+        document.querySelector('#numRemembered').innerHTML = numRemembered;
+      }
+    }
+
+    document.addEventListener('change', (event) => {
+      if (event.target.getAttribute('type') === 'checkbox') {
+        worker.postMessage({
+          key: event.target.id,
+          value: event.target.checked
+        });
+      } else if (event.target.id === 'interval') {
+        fetch('http://localhost:8999/interval', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ interval: event.target.value }) 
+        });
+      }
+    });
+
+    document.addEventListener('keyup', (event) => {
+      if (event.target.getAttribute('type') !== 'text') return;
+      worker.postMessage({
+        key: event.target.id,
+        value: event.target.value
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (event.target.id === 'clearView') {
+        worker.postMessage({
+          moreUncaught: numCaught
+        });
+        document.querySelector('#caught').innerHTML = '';
+        document.querySelector('#numCaught').innerHTML = numCaught = 0;
+      } else if (event.target.id === 'clearMem') {
+        worker.postMessage({
+          clearMemory: true
+        });
+      };
+    });
+
+  </script>
+</body>
+
+</html>
